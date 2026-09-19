@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  body {
+    background: white;
+  }
+  .print-hidden {
+    display: none !important;
+  }
+  .print-root {
+    position: static !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .print-grid {
+    border: 1px solid #e5e5e5;
+  }
+}

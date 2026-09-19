@@ -1,0 +1,37 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Build deps for the better-sqlite3 native module.
+RUN apk add --no-cache python3 make g++
+
+# Compile better-sqlite3 from source instead of fetching a prebuilt binary,
+# which can hang in a sandboxed Docker build.
+ENV npm_config_build_from_source=true
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build && npm prune --omit=dev
+
+FROM node:20-alpine
+
+RUN apk --no-cache add tzdata
+
+WORKDIR /app
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/db/schema.sql ./dist/db/schema.sql
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+RUN mkdir -p /app/data
+
+EXPOSE 8080
+
+ENV DB_PATH=/app/data/calendar.db
+ENV PORT=8080
+ENV NODE_ENV=production
+
+CMD ["node", "dist/index.js"]
