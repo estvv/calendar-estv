@@ -23,7 +23,7 @@ export function formatTime(minutes: number, clock: ClockType): string {
 }
 
 export function formatRange(start: number, end: number, clock: ClockType): string {
-  return `${formatTime(start, clock)} – ${formatTime(end, clock)}`;
+  return `${formatTime(start, clock)} - ${formatTime(end, clock)}`;
 }
 
 // "HH:MM" (input[type=time] value) <-> minutes since midnight

@@ -82,11 +82,11 @@ export function ScheduleGrid({
 
       <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden print-grid">
         {/* Day header */}
-        <div className="flex border-b border-neutral-200" style={{ paddingLeft: GUTTER_PX }}>
+        <div className="flex border-b border-neutral-100" style={{ paddingLeft: GUTTER_PX }}>
           {days.map(d => (
             <div
               key={d}
-              className="flex-1 min-w-0 py-3 text-center text-xs font-semibold uppercase tracking-wider text-neutral-500 border-l border-neutral-100 first:border-l-0"
+              className="flex-1 min-w-0 py-4 text-center text-[11px] font-bold uppercase tracking-wide text-neutral-800"
             >
               {DAY_NAMES[d]}
             </div>
@@ -96,11 +96,11 @@ export function ScheduleGrid({
         {/* Body */}
         <div className="relative flex" style={{ height: heightPx }}>
           {/* Time gutter */}
-          <div className="relative shrink-0 border-r border-neutral-100" style={{ width: GUTTER_PX }}>
+          <div className="relative shrink-0" style={{ width: GUTTER_PX }}>
             {hours.map(m => (
               <div
                 key={m}
-                className="absolute right-2 text-[11px] font-medium text-neutral-400 select-none"
+                className="absolute right-3 text-[10px] font-semibold text-neutral-700 select-none"
                 style={{ top: toY(m) + 4 }}
               >
                 {formatTime(m, settings.clock_type)}
@@ -116,7 +116,7 @@ export function ScheduleGrid({
               )
             ))}
             {subLines.map(m => (
-              <div key={m} className="absolute left-0 right-0 border-t border-dashed border-neutral-100" style={{ top: toY(m) }} />
+              <div key={m} className="absolute left-0 right-0 border-t border-dashed border-neutral-100/80" style={{ top: toY(m) }} />
             ))}
           </div>
 
@@ -124,7 +124,7 @@ export function ScheduleGrid({
           {days.map(d => (
             <div
               key={d}
-              className={`relative flex-1 min-w-0 border-l border-neutral-100 first:border-l-0 ${
+              className={`relative flex-1 min-w-0 border-l border-neutral-200 first:border-l-0 ${
                 readOnly ? '' : 'cursor-pointer hover:bg-neutral-50/60 transition-colors'
               }`}
               onClick={(e) => handleColumnClick(d, e)}
@@ -132,11 +132,11 @@ export function ScheduleGrid({
               {(byDay.get(d) ?? []).map(({ event, lane, lanes }) => {
                 const top = toY(event.start_min);
                 const height = toY(event.end_min) - top;
-                const compact = height < 40;
+                const compact = height < 44;
                 return (
                   <div
                     key={event.id}
-                    className="absolute p-0.5"
+                    className="absolute px-[3px] py-[2px]"
                     style={{
                       top,
                       height,
@@ -149,27 +149,34 @@ export function ScheduleGrid({
                       onClick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
                       disabled={readOnly && !onEventClick}
                       title={`${event.title}\n${formatRange(event.start_min, event.end_min, settings.clock_type)}${event.description ? `\n${event.description}` : ''}`}
-                      className={`w-full h-full flex flex-col items-stretch justify-start text-left rounded-md overflow-hidden px-2 ${compact ? 'py-0.5' : 'py-1.5'} border-l-[3px] transition-opacity ${
+                      className={`w-full h-full flex flex-col items-stretch text-left rounded-lg overflow-hidden border-2 transition-opacity ${
                         readOnly ? 'cursor-default' : 'hover:opacity-80'
                       }`}
-                      style={{ backgroundColor: tint(event.color), borderLeftColor: event.color }}
+                      style={{ backgroundColor: tint(event.color), borderColor: event.color }}
                     >
-                      <div className={`font-semibold text-neutral-900 leading-tight truncate ${compact ? 'text-[11px]' : 'text-xs'}`}>
-                        {event.title}
-                        {compact && (
-                          <span className="font-normal text-neutral-500 ml-1.5">{formatTime(event.start_min, settings.clock_type)}</span>
+                      <div className={`shrink-0 ${compact ? 'h-1' : 'h-2'}`} style={{ backgroundColor: event.color }} />
+                      <div className={`min-h-0 ${compact ? 'px-2 py-0.5' : 'px-3 pt-2 pb-1.5'}`}>
+                        {compact ? (
+                          <div className="text-[11px] font-bold leading-tight truncate" style={{ color: event.color }}>
+                            {event.title}
+                            <span className="font-semibold opacity-80 ml-1.5">{formatTime(event.start_min, settings.clock_type)}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-[13px] font-bold leading-snug line-clamp-2" style={{ color: event.color }}>
+                              {event.title}
+                            </div>
+                            <div className="text-[11px] font-semibold leading-tight mt-1.5" style={{ color: event.color }}>
+                              {formatRange(event.start_min, event.end_min, settings.clock_type)}
+                            </div>
+                            {height >= 96 && event.description && (
+                              <div className="text-[11px] text-neutral-600 leading-snug mt-1.5 line-clamp-3 whitespace-pre-line">
+                                {event.description}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
-                      {!compact && (
-                        <div className="text-[11px] text-neutral-500 leading-tight truncate">
-                          {formatRange(event.start_min, event.end_min, settings.clock_type)}
-                        </div>
-                      )}
-                      {!compact && height >= 72 && event.description && (
-                        <div className="text-[11px] text-neutral-600 leading-snug mt-1 line-clamp-3 whitespace-pre-line">
-                          {event.description}
-                        </div>
-                      )}
                     </button>
                   </div>
                 );

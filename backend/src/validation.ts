@@ -163,7 +163,7 @@ export function validateImport(body: unknown): ScheduleExport | string {
       day: e.day,
       start_min: e.start_min,
       end_min: e.end_min,
-      color: e.color ?? '#0ea5e9',
+      color: e.color ?? '#00a7f5',
     })),
   };
 }

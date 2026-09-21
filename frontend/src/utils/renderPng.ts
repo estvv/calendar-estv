@@ -120,14 +120,14 @@ export async function renderSchedulePng({ title, settings, events, day }: Render
   ctx.lineTo(gx + gridW, bodyY + 0.5);
   ctx.stroke();
 
-  ctx.font = `600 11px ${FONT}`;
-  ctx.fillStyle = COLORS.muted;
+  ctx.font = `700 11px ${FONT}`;
+  ctx.fillStyle = COLORS.text;
   ctx.textAlign = 'center';
   days.forEach((d, i) => {
     const x = gx + GUTTER_PX + colW * i;
     ctx.fillText(DAY_NAMES[d].toUpperCase(), x + colW / 2, gy + headerH / 2);
     if (i > 0) {
-      ctx.strokeStyle = COLORS.subline;
+      ctx.strokeStyle = COLORS.line;
       ctx.beginPath();
       ctx.moveTo(Math.round(x) + 0.5, gy);
       ctx.lineTo(Math.round(x) + 0.5, gy + gh);
@@ -145,7 +145,7 @@ export async function renderSchedulePng({ title, settings, events, day }: Render
   // Hour lines and labels
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
-  ctx.font = `500 11px ${FONT}`;
+  ctx.font = `600 10px ${FONT}`;
   for (const m of hourMarks(gridStart, gridEnd)) {
     const y = Math.round(toY(m)) + 0.5;
     if (m !== gridStart) {
@@ -156,8 +156,8 @@ export async function renderSchedulePng({ title, settings, events, day }: Render
       ctx.lineTo(gx + gridW, y);
       ctx.stroke();
     }
-    ctx.fillStyle = COLORS.faint;
-    ctx.fillText(formatTime(m, settings.clock_type), gx + GUTTER_PX - 8, toY(m) + 4);
+    ctx.fillStyle = '#404040';
+    ctx.fillText(formatTime(m, settings.clock_type), gx + GUTTER_PX - 12, toY(m) + 4);
   }
   for (const m of subMarks(gridStart, gridEnd, settings.time_increment)) {
     const y = Math.round(toY(m)) + 0.5;
@@ -177,43 +177,63 @@ export async function renderSchedulePng({ title, settings, events, day }: Render
     const colX = gx + GUTTER_PX + colW * i;
     for (const { event, lane, lanes } of layoutDay(events.filter(e => e.day === d))) {
       const laneW = colW / lanes;
-      const x = colX + laneW * lane + 2;
-      const w = laneW - 4;
+      const x = colX + laneW * lane + 3;
+      const w = laneW - 6;
       const y = toY(event.start_min) + 2;
       const h = toY(event.end_min) - toY(event.start_min) - 4;
-      const compact = h < 36;
+      const compact = h < 44;
+      const barH = compact ? 4 : 8;
 
       ctx.save();
-      roundRect(ctx, x, y, w, h, 6);
+      roundRect(ctx, x, y, w, h, 8);
       ctx.clip();
       ctx.fillStyle = tint(event.color);
       ctx.fillRect(x, y, w, h);
       ctx.fillStyle = event.color;
-      ctx.fillRect(x, y, 3, h);
+      ctx.fillRect(x, y, w, barH);
+      ctx.restore();
 
-      const tx = x + 9;
-      const tw = w - 12;
-      let ty = y + (compact ? 3 : 6);
+      // 2px border in the event colour
+      ctx.strokeStyle = event.color;
+      ctx.lineWidth = 2;
+      roundRect(ctx, x + 1, y + 1, w - 2, h - 2, 7);
+      ctx.stroke();
+      ctx.lineWidth = 1;
 
-      ctx.fillStyle = COLORS.text;
-      ctx.font = `600 ${compact ? 11 : 12}px ${FONT}`;
+      ctx.save();
+      roundRect(ctx, x + 2, y + barH, w - 4, h - barH - 2, 4);
+      ctx.clip();
+
+      const tx = x + (compact ? 8 : 12);
+      const tw = w - (compact ? 16 : 24);
+      let ty = y + barH + (compact ? 3 : 8);
+
+      ctx.fillStyle = event.color;
       if (compact) {
+        ctx.font = `700 11px ${FONT}`;
         const time = formatTime(event.start_min, settings.clock_type);
-        const titleText = truncate(ctx, event.title, tw - ctx.measureText(` ${time}`).width);
+        const timeW = ctx.measureText(time).width;
+        const titleText = truncate(ctx, event.title, tw - timeW - 6);
         ctx.fillText(titleText, tx, ty);
-        ctx.fillStyle = COLORS.muted;
-        ctx.font = `400 11px ${FONT}`;
-        ctx.fillText(time, tx + ctx.measureText(titleText).width + 5, ty);
+        ctx.font = `600 11px ${FONT}`;
+        ctx.globalAlpha = 0.8;
+        ctx.fillText(time, tx + ctx.measureText(titleText).width + 6, ty);
+        ctx.globalAlpha = 1;
       } else {
-        ctx.fillText(truncate(ctx, event.title, tw), tx, ty);
-        ty += 15;
-        ctx.fillStyle = COLORS.muted;
-        ctx.font = `400 11px ${FONT}`;
+        ctx.font = `700 13px ${FONT}`;
+        const titleLines = wrap(ctx, event.title, tw, 2);
+        for (const line of titleLines) {
+          ctx.fillText(line, tx, ty);
+          ty += 16;
+        }
+        ty += 4;
+        ctx.font = `600 11px ${FONT}`;
         ctx.fillText(truncate(ctx, formatRange(event.start_min, event.end_min, settings.clock_type), tw), tx, ty);
-        ty += 17;
-        if (event.description && h >= 72) {
+        ty += 18;
+        if (event.description && h >= 96) {
           ctx.fillStyle = '#525252';
-          const maxLines = Math.max(1, Math.floor((y + h - 6 - ty) / 14));
+          ctx.font = `400 11px ${FONT}`;
+          const maxLines = Math.max(1, Math.floor((y + h - 8 - ty) / 14));
           for (const line of wrap(ctx, event.description, tw, Math.min(3, maxLines))) {
             ctx.fillText(line, tx, ty);
             ty += 14;

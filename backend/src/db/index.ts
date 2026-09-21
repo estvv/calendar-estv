@@ -151,7 +151,7 @@ export function createEvent(scheduleId: number, input: EventInput): Event {
     input.day,
     input.start_min,
     input.end_min,
-    input.color ?? '#0ea5e9'
+    input.color ?? '#00a7f5'
   );
   touchSchedule(scheduleId);
   return getEventById(result.lastInsertRowid as number)!;

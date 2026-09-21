@@ -1,0 +1,10 @@
+# À coller dans /etc/caddy/Caddyfile sur le VPS, puis :
+#   docker exec caddy-router caddy reload --config /etc/caddy/Caddyfile
+#
+# Le frontend nginx proxifie déjà /api et /health vers le backend, donc un
+# seul upstream suffit. Caddy gère le certificat HTTPS automatiquement.
+
+calendar.estv.fr {
+    encode gzip zstd
+    reverse_proxy calendar-frontend-estv:80
+}
